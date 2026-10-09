@@ -1,0 +1,590 @@
+{
+ "r96_mayday1": {
+  "spk": "andres",
+  "fx": "mf",
+  "emo": "angustia",
+  "dur": 17.041,
+  "sub": "Mayday, mayday, mayday. Aquí Santa Ilia, Santa Ilia, Santa Ilia. Pesquero de Camariñas. Seis personas a bordo. Sin radar y sin sonda, nos entra agua por proa. Estimamos posición dos millas al oeste de Punta Insua. Navegamos a la vista del faro de Néboa. Solicitamos asistencia. Cambio."
+ },
+ "r96_fisterra1": {
+  "spk": "fisterra",
+  "fx": "mf",
+  "emo": "tension",
+  "dur": 8.355,
+  "sub": "Santa Ilia, Santa Ilia, aquí Fisterra Radio. Recibido su mayday. Movilizamos medios. Mantengan escucha en 2182. Cambio."
+ },
+ "r96_grilo1": {
+  "spk": "grilo",
+  "fx": "mf_far",
+  "emo": "miedo",
+  "dur": 1.795,
+  "sub": "Papá... ¿ese es nuestro faro?"
+ },
+ "r96_andres1": {
+  "spk": "andres",
+  "fx": "mf_far",
+  "emo": "ternura",
+  "dur": 6.773,
+  "sub": "Ese es, Grilo. Tres destellos, y a contar quince. Mientras lo veamos, estamos bien. Ponte el chaleco."
+ },
+ "r96_fisterra2": {
+  "spk": "fisterra",
+  "fx": "mf",
+  "emo": "tension",
+  "dur": 11.51,
+  "sub": "Santa Ilia, aquí Fisterra Radio. La radiogoniometría de Punta Insua les sitúa en demora 205 desde la estación. Repito: dos, cero, cinco. Confirmen su posición. Cambio."
+ },
+ "r96_andres2": {
+  "spk": "andres",
+  "fx": "mf",
+  "emo": "tension",
+  "dur": 8.18,
+  "sub": "Fisterra, Santa Ilia. Eso no puede ser. Estamos al oeste de Insua, tenemos el faro de Néboa a la vista. Seguimos el faro. Cambio."
+ },
+ "r96_xose1": {
+  "spk": "xose",
+  "fx": "mf_far",
+  "emo": "panico",
+  "dur": 2.25,
+  "sub": "¡Patrón! ¡Rompe el mar por babor!"
+ },
+ "r96_andres3": {
+  "spk": "andres",
+  "fx": "mf_far",
+  "emo": "calma",
+  "dur": 5.01,
+  "sub": "Tranquilo, Xosé. Tenemos Néboa por la aleta. En nada estamos en Camariñas."
+ },
+ "r96_andres4": {
+  "spk": "andres",
+  "fx": "mf",
+  "emo": "alivio",
+  "dur": 6.222,
+  "sub": "Fisterra, Santa Ilia. Ya vemos las luces de la entrada de Camariñas. Vamos para dentro. Cambio."
+ },
+ "r96_grilo2": {
+  "spk": "grilo",
+  "fx": "mf_far",
+  "emo": "miedo",
+  "dur": 1.602,
+  "sub": "Papá, tengo frío."
+ },
+ "r96_andres5": {
+  "spk": "andres",
+  "fx": "mf_far",
+  "emo": "ternura_tensa",
+  "dur": 2.66,
+  "sub": "Ya llegamos, Grilo. Ya llegamos."
+ },
+ "r96_xose_off": {
+  "spk": "xose",
+  "fx": "mf_far",
+  "emo": "panico",
+  "dur": 2.55,
+  "sub": "¡Patrón! ¡El faro! ¡Se ha apagado el faro!"
+ },
+ "r96_andres_off": {
+  "spk": "andres",
+  "fx": "mf_far",
+  "emo": "desesperacion",
+  "dur": 3.077,
+  "sub": "¿Cómo que se ha apagado? ¡No lo pierdas de vista!"
+ },
+ "r96_xose_on": {
+  "spk": "xose",
+  "fx": "mf_far",
+  "emo": "alegria",
+  "dur": 1.655,
+  "sub": "¡Ahí está otra vez!"
+ },
+ "r96_andres_on": {
+  "spk": "andres",
+  "fx": "mf_far",
+  "emo": "miedo",
+  "dur": 3.649,
+  "sub": "Virgen do Carme... ¿qué le pasa a ese faro esta noche?"
+ },
+ "r96_andres_luz": {
+  "spk": "andres",
+  "fx": "mf_far",
+  "emo": "alegria",
+  "dur": 3.737,
+  "sub": "¡Lo veo, Grilo! ¡Mira! Tres destellos. Agárrate, que entramos."
+ },
+ "r96_xose_fail": {
+  "spk": "xose",
+  "fx": "mf_far",
+  "emo": "panico",
+  "dur": 2.275,
+  "sub": "¡Patrón! ¡No hay faro! ¡No veo nada!"
+ },
+ "r96_andres_fail": {
+  "spk": "andres",
+  "fx": "mf_far",
+  "emo": "urgencia",
+  "dur": 2.789,
+  "sub": "¡Allí! ¡Una luz roja! Es Camariñas. ¡Vamos!"
+ },
+ "r96_andres_adv": {
+  "spk": "andres",
+  "fx": "mf",
+  "emo": "urgencia",
+  "dur": 4.484,
+  "sub": "¡Ya lo habéis oído! ¡Todo a estribor, a ganar mar! ¡Que nadie mire la roja!"
+ },
+ "r96_andres_reply": {
+  "spk": "andres",
+  "fx": "mf",
+  "emo": "asombro",
+  "dur": 4.593,
+  "sub": "Recibido, Cabo Néboa. Ganamos mar. ¿Quién eres? Tienes una voz que..."
+ },
+ "r96_fisterra_resc": {
+  "spk": "fisterra",
+  "fx": "mf",
+  "emo": "urgencia",
+  "dur": 5.71,
+  "sub": "Cabo Néboa, aquí Fisterra Radio. Recibido. El helicóptero despega ya hacia la Laxe das Viúvas."
+ },
+ "vhf_salv1": {
+  "spk": "salv",
+  "fx": "vhf",
+  "emo": "neutral",
+  "dur": 15.351,
+  "sub": "Atención a todos los barcos, aquí Salvamento Fisterra. Aviso de temporal: viento del suroeste fuerza 10, mar de fondo de 8 metros. Pleamar a las 23:52, con riesgo de inundación en zonas bajas de la costa. Precaución."
+ },
+ "vhf_maree1": {
+  "spk": "camille",
+  "fx": "vhf",
+  "emo": "angustia",
+  "dur": 10.39,
+  "sub": "Mayday, mayday. Aquí el velero Marée, Marée. Somos dos a bordo, mi hijo y yo. Sin motor, y la vela rota. Estamos a la deriva. ¿Alguien me oye? Cambio."
+ },
+ "vhf_maree_off": {
+  "spk": "camille",
+  "fx": "vhf",
+  "emo": "panico",
+  "dur": 4.675,
+  "sub": "¿Hola? ¡El faro! ¡Se ha apagado el faro! No veo nada. ¿Alguien me oye?"
+ },
+ "vhf_maree2": {
+  "spk": "camille",
+  "fx": "vhf",
+  "emo": "nervios",
+  "dur": 13.505,
+  "sub": "¡Gracias! Gracias. Veo tres luces en la costa. Una blanca, que da dos destellos. Otra blanca, muy fuerte, de tres destellos. Y una roja, fija, que no parpadea. ¿Cuál es el puerto? ¿Hacia dónde voy?"
+ },
+ "vhf_maree_wrong_red": {
+  "spk": "camille",
+  "fx": "vhf",
+  "emo": "miedo",
+  "dur": 5.465,
+  "sub": "¿Hacia la roja? Pero... veo romper el mar justo debajo. ¿Está seguro?"
+ },
+ "vhf_maree_wrong_white": {
+  "spk": "camille",
+  "fx": "vhf",
+  "emo": "miedo",
+  "dur": 5.57,
+  "sub": "¿Hacia ese faro? Ahí hay rocas, las veo blancas de espuma. ¿Está seguro?"
+ },
+ "vhf_maree_ok": {
+  "spk": "camille",
+  "fx": "vhf",
+  "emo": "alivio",
+  "dur": 7.21,
+  "sub": "Entendido. Entre las dos luces blancas, y lejos de la roja. Merci. Muchas gracias, faro."
+ },
+ "vhf_maree_safe": {
+  "spk": "camille",
+  "fx": "vhf",
+  "emo": "ternura",
+  "dur": 6.38,
+  "sub": "Faro, aquí Marée. Estamos fondeados en la ensenada. Léo se ha dormido. Gracias."
+ },
+ "vhf_maree_declined": {
+  "spk": "camille",
+  "fx": "vhf",
+  "emo": "tristeza",
+  "dur": 4.715,
+  "sub": "Entendido. Seguiremos su luz. Por favor... no la apague."
+ },
+ "vhf_maree_again": {
+  "spk": "camille",
+  "fx": "vhf",
+  "emo": "desesperacion",
+  "dur": 5.91,
+  "sub": "Faro, faro, aquí Marée. ¿Me oye? El viento nos empuja hacia la costa. Por favor."
+ },
+ "call_r01": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "angustia",
+  "dur": 2.174,
+  "sub": "¿Salvamento? ¿Me oyen?"
+ },
+ "call_r02": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "tension",
+  "dur": 4.538,
+  "sub": "Aquí el faro de Cabo Néboa. Habla Ramón Bouzas, el torrero."
+ },
+ "call_r03": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "angustia",
+  "dur": 3.31,
+  "sub": "Tengo un pesquero en apuros, el Santa Ilia."
+ },
+ "call_r04": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "desesperacion",
+  "dur": 4.424,
+  "sub": "Los oigo en 2182 y no puedo contestarles."
+ },
+ "call_r05": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "desesperacion",
+  "dur": 4.652,
+  "sub": "Si cargo el transmisor, me quedo sin luz. Y sin luz, se matan."
+ },
+ "call_r06": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "grave",
+  "dur": 3.168,
+  "sub": "O luz, o voz. No hay para las dos."
+ },
+ "call_r07": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "urgencia",
+  "dur": 4.261,
+  "sub": "Los estoy viendo desde la galería. No están donde dicen."
+ },
+ "call_r08": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "tension",
+  "dur": 4.049,
+  "sub": "Los tengo al 230. Dos. Tres. Cero."
+ },
+ "call_r09": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "angustia",
+  "dur": 4.397,
+  "sub": "Mucho más al sur. Van derechos a la Laxe das Viúvas."
+ },
+ "call_r10": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "miedo",
+  "dur": 2.245,
+  "sub": "¿Oiga? ¿Hay alguien ahí?"
+ },
+ "call_r11": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "escalofrio",
+  "dur": 2.196,
+  "sub": "Le oigo respirar."
+ },
+ "call_r12": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "miedo",
+  "dur": 2.451,
+  "sub": "Usted no es Salvamento."
+ },
+ "call_r13": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "escalofrio",
+  "dur": 3.446,
+  "sub": "Suena como si estuviera aquí. En mi faro."
+ },
+ "call_r14": {
+  "spk": "ramon",
+  "fx": "line",
+  "emo": "suplica",
+  "dur": 3.886,
+  "sub": "No apague la luz. Pase lo que pase, no apague la..."
+ },
+ "call_papa": {
+  "spk": "andres_old",
+  "fx": "cell",
+  "emo": "calidez",
+  "dur": 8.097,
+  "sub": "¿Grilo? ¿Sigues en el faro? Anoche soñé contigo, de pequeño, en el barco. Qué tontería. Ven a desayunar, anda. Te espero."
+ },
+ "n_intro_1": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "misterio",
+  "dur": 4.053,
+  "sub": "Cabo Néboa. Costa da Morte. 11 de noviembre."
+ },
+ "n_intro_2s": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "misterio",
+  "dur": 11.547,
+  "sub": "Viniste a revisar el radiofaro antes del temporal. Pero el temporal llegó antes. El mar ha cortado el camino y la corriente. El faro vive de sus baterías."
+ },
+ "n_intro_2c": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "misterio",
+  "dur": 11.803,
+  "sub": "Vinisteis a revisar el radiofaro antes del temporal. Pero el temporal llegó antes. El mar ha cortado el camino y la corriente. El faro vive de sus baterías."
+ },
+ "n_intro_3": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "misterio",
+  "dur": 8.675,
+  "sub": "A las 23:37, en la sala de radio, una emisora muerta desde hace treinta años vuelve a hablar."
+ },
+ "n_intro_4s": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "tension",
+  "dur": 5.692,
+  "sub": "Tienes quince minutos. Escucha. Y decide… antes de que suba la marea."
+ },
+ "n_intro_4c": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "tension",
+  "dur": 7.731,
+  "sub": "Cada uno guarda una parte del faro: contadlo todo. Tenéis quince minutos… antes de que suba la marea."
+ },
+ "n_grilo_s": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "revelacion",
+  "dur": 4.292,
+  "sub": "Grilo. Hace treinta años que nadie te llama así."
+ },
+ "n_grilo_c": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "revelacion",
+  "dur": 5.431,
+  "sub": "Grilo. Hace treinta años que nadie llamaba así a uno de vosotros."
+ },
+ "n_page_s": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "escalofrio",
+  "dur": 7.869,
+  "sub": "La respiración en el teléfono de Ramón eras tú. Y la voz de las 23:52, también."
+ },
+ "n_page_c": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "escalofrio",
+  "dur": 9.269,
+  "sub": "La respiración en el teléfono de Ramón era la de uno de vosotros. Y la voz de las 23:52, también."
+ },
+ "n_luz_1": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "drama",
+  "dur": 7.514,
+  "sub": "23:52. El mar revienta la puerta de abajo. Las baterías chisporrotean… y mueren."
+ },
+ "n_luz_2": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "esperanza",
+  "dur": 7.303,
+  "sub": "Arriba, la llama de queroseno no tiembla. La relojería cuenta: uno, dos, tres… y quince."
+ },
+ "n_luz_3": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "calma",
+  "dur": 5.736,
+  "sub": "Nadie transmite nada. El faro solo hace lo que sabe hacer: alumbrar."
+ },
+ "n_voz_1": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "grave",
+  "dur": 6.686,
+  "sub": "23:52. La palanca baja. El faro se apaga en las dos noches."
+ },
+ "n_adv_2": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "urgencia",
+  "dur": 9.769,
+  "sub": "Una voz desde Cabo Néboa llama al Santa Ilia: que no sigan la luz roja fija, que debajo está la Laxe. Que ganen mar. Que el faro volverá."
+ },
+ "n_resc_2": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "urgencia",
+  "dur": 8.442,
+  "sub": "Una voz desde Cabo Néboa da a Fisterra Radio la posición exacta de la Laxe das Viúvas. Que envíen el helicóptero. Ya."
+ },
+ "n_voz_3": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "tristeza",
+  "dur": 4.792,
+  "sub": "Y a esa voz, sin querer, se le escapa: «Ramón… perdóname»."
+ },
+ "n_fail_1": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "drama",
+  "dur": 6.569,
+  "sub": "23:52. El mar entra en la sala de baterías. Chispas. Oscuridad."
+ },
+ "n_fail_2": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "tristeza",
+  "dur": 4.481,
+  "sub": "Arriba, la linterna se apaga. En las dos noches."
+ },
+ "n_maree_helped": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "alivio",
+  "dur": 8.153,
+  "sub": "En la Enseada da Lagoa, el Marée sigue fondeado. Léo duerme. Camille escribe en su cuaderno: «Una voz nos guio»."
+ },
+ "n_maree_luzSafe": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "alivio",
+  "dur": 6.758,
+  "sub": "El Marée vio la luz a tiempo y viró. Camille nunca sabrá lo cerca que estuvo de la Laxe."
+ },
+ "n_maree_dark": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "tristeza",
+  "dur": 12.158,
+  "sub": "Durante tres minutos, el Marée navegó a ciegas. Encalló en las piedras del Facho. Al amanecer, Salvamento rescató a Camille y a Léo, heridos. El velero, no."
+ },
+ "n_maree_darkWorse": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "tristeza",
+  "dur": 10.097,
+  "sub": "Durante tres minutos, el Marée navegó a ciegas. Al amanecer, Salvamento encontró el velero volcado en la Laxe. Siguen buscando."
+ },
+ "n_epi_page": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "misterio",
+  "dur": 3.531,
+  "sub": "Amanece. La hoja de Ramón ha cambiado."
+ },
+ "n_epi_luz_2": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "emocion",
+  "dur": 6.636,
+  "sub": "Vibra un móvil. En la pantalla, un nombre que llevaba treinta años sin llamar: «Papá»."
+ },
+ "n_epi_adv_2s": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "tristeza",
+  "dur": 7.019,
+  "sub": "En tu mochila ya no está el dibujo de Lúa. Intentas recordar su cara… y no puedes."
+ },
+ "n_epi_adv_2c": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "tristeza",
+  "dur": 7.564,
+  "sub": "En la mochila de Grilo ya no está el dibujo de Lúa. Grilo intenta recordar su cara… y no puede."
+ },
+ "n_epi_resc_1": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "calma",
+  "dur": 3.936,
+  "sub": "Amanece. El dibujo de Lúa sigue en la mochila."
+ },
+ "n_epi_resc_2": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "emocion",
+  "dur": 3.958,
+  "sub": "Y en el móvil hay un número que no estaba: «Papá»."
+ },
+ "n_epi_resc_3s": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "grave",
+  "dur": 5.358,
+  "sub": "A Ramón volvieron a culparle del apagón. Tú sabes de quién fue."
+ },
+ "n_epi_resc_3c": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "grave",
+  "dur": 5.903,
+  "sub": "A Ramón volvieron a culparle del apagón. Vosotros sabéis de quién fue."
+ },
+ "n_epi_fail": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "tristeza",
+  "dur": 7.586,
+  "sub": "Amanece. En el corcho del archivo, el recorte sigue en su sitio: cinco desaparecidos… y un niño."
+ },
+ "n_msg_luz": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "esperanza",
+  "dur": 7.869,
+  "sub": "Un faro no habla. Alumbra. A veces, salvar a los tuyos es seguir haciendo lo correcto por quien no conoces."
+ },
+ "n_msg_adv": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "grave",
+  "dur": 10.408,
+  "sub": "Cambiaste el pasado con tu voz. Pero toda luz que apagas se apaga para alguien. Y quien cambia una noche cambia todas las que vienen después."
+ },
+ "n_msg_resc": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "grave",
+  "dur": 9.553,
+  "sub": "Salvaste a los tuyos sin borrar quién eres. Pero la verdad tiene un precio: alguien cargó con tu oscuridad. Y esta vez sabes quién."
+ },
+ "n_msg_fail": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "grave",
+  "dur": 7.253,
+  "sub": "No elegir también es elegir. Esta noche volverá a repetirse… hasta que alguien decida."
+ },
+ "n_blur_s": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "tension",
+  "dur": 13.936,
+  "sub": "23:47. El mar ya entra por la puerta de abajo. Y las dos noches empiezan a tocarse: cuanto más se acerquen las 23:52, menos sabrás cuál de las dos estás viendo."
+ },
+ "n_blur_c": {
+  "spk": "narr",
+  "fx": "narr",
+  "emo": "tension",
+  "dur": 14.008,
+  "sub": "23:47. El mar ya entra por la puerta de abajo. Y las dos noches empiezan a tocarse: cuanto más se acerquen las 23:52, menos sabréis cuál de las dos estáis viendo."
+ }
+}

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>NOWAYOUT · La Última Frecuencia</title>
+<meta name="description" content="No hay salida para quien no piensa. Escape room en directo desde el navegador, solo o con amigos: un faro, una tormenta y una radio que habla con 1996.">
+<meta name="theme-color" content="#06080b">
+<meta property="og:type" content="website">
+<meta property="og:title" content="NOWAYOUT · Sala 0: La Última Frecuencia">
+<meta property="og:description" content="No hay salida para quien no piensa. Un faro en plena tormenta, una radio que habla con 1996 y quince minutos para decidir. ¿Tu cabeza aguanta?">
+<meta property="og:image" content="https://twoclicksia-cmyk.github.io/nowayout/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NOWAYOUT">
+<meta property="og:site_name" content="NOWAYOUT">
+<meta property="og:locale" content="es_ES">
+<link rel="preload" href="assets/fonts/big-shoulders-display-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/archivo-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="css/app.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }</script>
+</head>
+<body>
+<section id="gate" class="screen" aria-label="Portada">
+  <canvas class="bg" aria-hidden="true"></canvas>
+  <div class="gate-wrap">
+    <header class="brand" style="justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div class="wordmark" aria-label="NOWAYOUT">N<span class="o"></span>WAY<span class="o"></span>UT</div>
+      <span class="lockline" id="lockline">Acceso bloqueado</span>
+    </header>
+    <div class="gate-hero">
+      <h1>El catálogo está al otro lado. <em>Primero, demuestra que puedes salir.</em></h1>
+      <p class="lead">NOWAYOUT es una plataforma de escape rooms para jugar en directo, solo o con amigos. Su puerta está cerrada: solo entra quien supera la Sala 0.</p>
+    </div>
+    <div class="card unlocked-banner" id="unlockedBanner" hidden>
+      <div class="eyebrow" style="color:#9fe3bd">Ya escapaste de la Sala 0</div>
+      <p style="margin:6px 0 12px;line-height:1.5">Este dispositivo tiene acceso al catálogo.</p>
+      <div class="cta"><button class="btn primary" id="toCatalog">Entrar al catálogo</button></div>
+    </div>
+    <div class="gate-grid">
+      <article class="card room-card">
+        <div class="eyebrow">Sala 0 · Prueba de acceso</div>
+        <h2>La Última Frecuencia</h2>
+        <div class="tag"><span class="chip amber">≈ 15 min</span><span class="chip">Dificultad media</span><span class="chip">1–4 jugadores</span><span class="chip">Con sonido</span></div>
+        <p>Eres técnico/a de señales marítimas y el temporal te ha dejado sin salida en el faro de Cabo Néboa, en la Costa da Morte. A las 23:37, una emisora que lleva treinta años muerta empieza a hablar. Tienes hasta las 23:52 para entender qué quiere de ti… y decidir.</p>
+        <div class="cta">
+          <button class="btn primary" id="playSolo">Jugar solo</button>
+          <button class="btn" id="playFriends">Jugar con amigos</button>
+        </div>
+        <p class="fine">La cuenta atrás empieza cuando entras en el faro. Si se acaba, la tormenta decide por ti y la puerta de NOWAYOUT sigue cerrada; puedes reintentarlo al momento.</p>
+      </article>
+      <aside class="card" style="display:grid;gap:14px">
+        <div class="eyebrow">Cómo se juega un escape room</div>
+        <ol class="how">
+          <li>Explora el faro: arrastra para mirar alrededor y toca los puntos de luz para examinar y usar las cosas.</li>
+          <li>Conecta pistas: lo que lees en una planta abre lo que hay en otra. Con amigos, cada uno ve partes distintas, así que contadlo todo.</li>
+          <li>Decide antes de que acabe el tiempo. Hay varios finales y ninguno es gratis.</li>
+          <li>¿Atascado? Pide pistas: primero te orientan, luego te ayudan y, solo si lo pides, te dan la solución a cambio de un minuto.</li>
+        </ol>
+        <div class="eyebrow">Ajustes</div>
+        <div class="settings-row">
+          <button class="toggle" id="tSound" aria-pressed="true"><span class="dot"></span>Sonido</button>
+          <button class="toggle" id="tMotion" aria-pressed="false"><span class="dot"></span>Reducir movimiento</button>
+          <button class="toggle" id="tQuality" aria-pressed="true"><span class="dot"></span><span id="qLabel">Calidad: auto</span></button>
+        </div>
+        <p class="fine">Mejor con auriculares. No hay nada que descargar. Tu progreso se guarda solo en este dispositivo.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section id="lobby" class="screen" hidden aria-label="Sala de espera">
+  <div class="lobby-wrap">
+    <div class="lobby-top">
+      <div class="wordmark" style="font-size:24px">N<span class="o"></span>WAY<span class="o"></span>UT</div>
+      <button class="btn small ghost" id="lobbyBack">Volver</button>
+    </div>
+    <div id="lobbyBody" class="split"></div>
+  </div>
+</section>
+
+<section id="loading" class="screen" hidden aria-label="Cargando">
+  <div class="load-box">
+    <div class="eyebrow">Sala 0 · La Última Frecuencia</div>
+    <div class="bar"><i id="loadBar"></i></div>
+    <div class="fine" id="loadMsg" aria-live="polite">Preparando el faro…</div>
+  </div>
+</section>
+
+<section id="intro" class="screen" hidden aria-label="Introducción">
+  <div class="intro-text" id="introText"></div>
+  <div class="intro-actions" id="introActions"></div>
+</section>
+
+<section id="game" class="screen" hidden aria-label="Partida">
+  <canvas id="gl"></canvas>
+  <div class="vignette-red" id="vigRed"></div>
+  <div id="hotspots"></div>
+  <div class="hud-top">
+    <div class="timer" id="timer"><div class="t" id="tLeft">15:00</div><div class="c" id="tClock">23:37</div></div>
+    <div class="objectives" id="objs"><ul></ul></div>
+    <div class="hud-right" id="hudRight"></div>
+  </div>
+  <button class="nav-arrow l" id="navL" aria-label="Mirar a la izquierda de la sala"></button>
+  <button class="nav-arrow r" id="navR" aria-label="Mirar a la derecha de la sala"></button>
+  <div class="subs" id="subs" aria-live="polite"></div>
+  <div class="narr" id="narr"></div>
+  <div class="hud-bottom">
+    <nav class="floors" id="floors" aria-label="Plantas del faro"></nav>
+    <div class="actions" id="actions"></div>
+  </div>
+</section>
+
+<section id="ending" class="screen" hidden aria-label="Final"><div class="end-box" id="endBox"></div></section>
+<section id="catalog" class="screen scroll" hidden aria-label="Catálogo"></section>
+
+<noscript><p style="padding:20px">NOWAYOUT necesita JavaScript activado.</p></noscript>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
