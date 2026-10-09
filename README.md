@@ -11,6 +11,14 @@ Enlace para jugar: **https://twoclicksia-cmyk.github.io/Nowayout/**
 - **Solo:** abre la web y pulsa «Jugar solo».
 - **Con amigos:** pulsa «Jugar con amigos», escribe tu nombre y «Crear sala». Comparte el enlace (botón de WhatsApp o «Copiar enlace»). Los demás lo abren, escriben su nombre y pulsan «Entrar en la sala». Cuando todos marcan «listo», el anfitrión empieza la partida.
 
+Cada móvil muestra sus nombres y roles. «Listo» solo se activa después de cargar el faro; el anfitrión no puede iniciar mientras alguien está cargando o no está listo. Una cuenta atrás compartida coordina el comienzo del prólogo y del reloj. Se puede jugar desde redes/IP diferentes. El QR general abre la portada: para unirse a una partida concreta hay que compartir el enlace de esa sala.
+
+El volumen es individual y se puede ajustar en la portada, la sala de espera y el menú de la partida. El IQ externo es opcional y declarado; solo se comparte con el equipo si el jugador lo activa. El índice de razonamiento 0–100 del parte final cuenta retos atribuidos a los roles iniciales: no es un test de IQ. La media de referencia de IQ es 100 ([Mensa](https://www.mensa.org/what-is-iq/)); no se ha validado un IQ mínimo para superar esta sala.
+
+## Comprobaciones
+
+Con Node.js: `node tests/cooperative.mjs` comprueba diez clientes con un transporte MQTT simulado (carga, nombres, reparto de roles, inicio, reconexión, reloj y volumen). `node tests/simulation.mjs` recorre el motor con diez jugadores sintéticos repartidos en equipos de 4, 4 y 2; sus soluciones y pausas están programadas y no predicen tiempos humanos ni rendimiento por IQ. Además, se ha probado una sala con cuatro pestañas de Chrome conectadas al servicio público MQTT. Esa prueba no sustituye una prueba en varios móviles y redes físicas.
+
 Mejor con auriculares y con el sonido activado.
 
 ## Publicarlo en tu propio hosting
