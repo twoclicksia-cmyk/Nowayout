@@ -361,3 +361,23 @@ button { cursor: pointer; }
 .invite-card h2 { margin: 0; font-family: var(--f-display); font-weight: 900; font-size: clamp(30px, 8vw, 46px); line-height: .95; text-transform: uppercase; }
 .invite-card h2 em { font-style: normal; color: var(--amber); }
 .invite-card p { margin: 0; color: #d6cfbf; line-height: 1.5; }
+
+/* Solo la cuenta atrás compartida y la entrada al faro. */
+#intro.room-countdown { overflow: hidden; isolation: isolate; }
+.arrival-storm, .arrival-aura { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+.arrival-storm { filter: saturate(.55) brightness(.55); }
+.arrival-aura { background: radial-gradient(ellipse at 50% 45%, rgba(242,165,65,.08), rgba(6,8,11,.35) 45%, #06080b 100%); box-shadow: inset 0 0 120px #000; animation: arrivalAura 2s ease-in-out infinite alternate; }
+.room-countdown .intro-text { text-align: center; max-width: 34ch; }
+.arrival-digit { font-family: var(--f-display); font-weight: 900; font-size: clamp(100px, 32vw, 220px); line-height: 1; color: var(--amber2); margin: .08em 0; text-shadow: 0 0 32px rgba(242,165,65,.35), 0 4px 30px #000; }
+.arrival-digit.pulse { animation: arrivalPulse .9s cubic-bezier(.2,.8,.2,1) both; }
+.room-arrival { position: fixed; inset: 0; z-index: 100; background: #06080b; pointer-events: none; animation: arrivalOpen 1.2s ease-out forwards; }
+.arrival-beam { position: absolute; inset: -20%; background: conic-gradient(from 250deg at 50% 50%, transparent 0deg, rgba(255,207,122,.18) 25deg, transparent 50deg); filter: blur(16px); animation: arrivalSweep 1.2s ease-out forwards; }
+.room-arrival.gentle { animation-duration: .4s; }
+.room-arrival.gentle .arrival-beam { display: none; }
+@keyframes arrivalPulse { 0% { opacity: .3; transform: scale(1.12); filter: blur(5px); } 25% { opacity: 1; filter: blur(0); } 100% { transform: scale(1); opacity: .85; } }
+@keyframes arrivalAura { to { box-shadow: inset 0 0 180px #000; opacity: .75; } }
+@keyframes arrivalOpen { 0%, 12% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes arrivalSweep { to { transform: rotate(65deg); opacity: 0; } }
+.reduce .arrival-aura, .reduce .arrival-digit, .reduce .arrival-beam { animation: none; }
+.reduce .room-arrival { animation: arrivalOpen .4s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) { .room-arrival { animation: arrivalOpen .4s ease-out forwards !important; } .arrival-aura, .arrival-digit, .arrival-beam { animation: none !important; } }

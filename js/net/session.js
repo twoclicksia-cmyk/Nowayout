@@ -11,8 +11,8 @@ export const BROKERS = [
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 export function newCode() { let s = ''; for (let i = 0; i < 6; i++) s += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]; return s; }
 export function newPid() { return 'p' + Math.random().toString(36).slice(2, 10); }
-function safeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-function safeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function safeGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+function safeSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
 
 class Emitter {
   constructor() { this._l = {}; }
@@ -57,19 +57,20 @@ function loadMqtt(base) {
   mqttLoading = new Promise((res, rej) => {
     const s = document.createElement('script');
     s.src = `${base}/vendor/mqtt.min.js`;
-    s.onload = () => res(window.mqtt);
-    s.onerror = () => rej(new Error('No se pudo cargar el módulo de conexión.'));
+    s.onload = () => { if (window.mqtt?.connect) res(window.mqtt); else { mqttLoading = null; s.remove(); rej(new Error('Módulo de conexión no disponible.')); } };
+    s.onerror = () => { mqttLoading = null; s.remove(); rej(new Error('No se pudo cargar el módulo de conexión.')); };
     document.head.appendChild(s);
   });
   return mqttLoading;
 }
 
 export class NetSession extends Emitter {
-  constructor({ base = '.', name = '', code = null, broker = null, pid = null, brokerUrl = null } = {}) {
+  constructor({ base = '.', name = '', code = null, broker = null, pid = null, brokerUrl = null, iq = null } = {}) {
     super();
     this.mode = 'coop';
     this.base = base;
     this.name = name;
+    this.iq = validIq(iq);
     this.code = code;
     this.brokerIdx = broker;
     this.brokerUrl = brokerUrl; // solo para pruebas locales
@@ -83,7 +84,16 @@ export class NetSession extends Emitter {
     this.connected = false;
     this.claims = [];        // roles que quiero
     this.ready = false;
+    this.loaded = false;
     this.lastSeen = {};
+    this.stopped = false;
+    this._wake = () => {
+      if (document.visibilityState === 'hidden' || this.stopped || !this.client) return;
+      if (this.connected) { this._publishPresence(); if (this.isHost) this._publishLobby(); }
+      else this.client.reconnect();
+    };
+    document.addEventListener('visibilitychange', this._wake);
+    window.addEventListener('online', this._wake);
   }
 
   get isHost() { return !!(this.lobby && this.lobby.host === this.me); }
@@ -106,15 +116,27 @@ export class NetSession extends Emitter {
       } catch (e) { lastErr = e; }
     }
     if (!this.client) throw lastErr || new Error('Sin conexión');
-    this.client.subscribe([this.t('p/+'), this.t('s'), this.t('a')], { qos: 1 });
+    await this._subscribe();
     if (create) {
       this.lobby = { phase: 'lobby', host: this.me, code: this.code, b: this.brokerIdx, created: Date.now() };
       this._publishLobby();
+      this.emit('lobby', this.lobby);
     }
     this._publishPresence();
     clearInterval(this._hb);
-    this._hb = setInterval(() => { this._publishPresence(); this._hostDuties(); }, 4000);
+    this._hb = setInterval(() => { if (!this.connected) return; this._publishPresence(); this._hostDuties(); if (this.isHost) this._publishLobby(); }, 4000);
     return this.code;
+  }
+
+  _subscribe() {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('La sala no responde. Vuelve a intentarlo.')), 8000);
+      this.client.subscribe([this.t('p/+'), this.t('s'), this.t('a')], { qos: 1 }, (err, granted) => {
+        clearTimeout(timer);
+        if (err || granted?.some(g => g.qos === 128)) reject(err || new Error('No se pudo abrir la sala.'));
+        else resolve();
+      });
+    });
   }
 
   _tryBroker(mqtt, url) {
@@ -125,19 +147,27 @@ export class NetSession extends Emitter {
         will: { topic: this.t('p/' + this.me), payload: '', retain: true, qos: 1 },
       });
       const to = setTimeout(() => { try { c.end(true); } catch (e) {} rej(new Error('timeout')); }, 8000);
+      const initialError = (e) => { clearTimeout(to); try { c.end(true); } catch (x) {} rej(e); };
+      c.once('error', initialError);
       c.once('connect', () => {
         clearTimeout(to);
+        c.removeListener('error', initialError);
         this.client = c;
         this.connected = true;
-        c.on('message', (topic, payload) => this._onMessage(topic, payload));
-        c.on('connect', () => { this.connected = true; this.emit('net', 'ok'); c.subscribe([this.t('p/+'), this.t('s'), this.t('a')], { qos: 1 }); this._publishPresence(); });
+        c.on('message', (topic, payload, packet) => this._onMessage(topic, payload, packet));
+        c.on('connect', async () => {
+          if (this.stopped) return;
+          this.connected = true;
+          try { await this._subscribe(); this._publishPresence(); if (this.isHost) this._publishLobby(); this.emit('net', 'ok'); }
+          catch (err) { this.emit('net', 'down'); }
+        });
+        c.on('error', () => this.emit('net', 'down'));
         c.on('reconnect', () => this.emit('net', 'reconnecting'));
         c.on('close', () => { this.connected = false; this.emit('net', 'down'); });
         c.on('offline', () => { this.connected = false; this.emit('net', 'down'); });
         this.emit('net', 'ok');
         res();
       });
-      c.once('error', (e) => { clearTimeout(to); try { c.end(true); } catch (x) {} rej(e); });
     });
   }
 
@@ -147,10 +177,16 @@ export class NetSession extends Emitter {
   }
 
   _publishPresence() {
-    this._pub(this.t('p/' + this.me), { n: this.name, rd: this.ready ? 1 : 0, r: this.claims, on: 1, t: Date.now() }, true);
+    const p = { n: this.name, rd: this.ready && this.loaded ? 1 : 0, ld: this.loaded ? 1 : 0, r: this.claims.slice(), iq: this.iq, on: 1, t: Date.now() };
+    this.presence[this.me] = { ...p, at: Date.now() };
+    this.lastSeen[this.me] = Date.now();
+    this.emit('presence', this.presence);
+    this._pub(this.t('p/' + this.me), p, true);
   }
+  setIq(iq) { this.iq = validIq(iq); this._publishPresence(); }
+  setLoaded(value) { this.loaded = !!value; if (!this.loaded) this.ready = false; this._publishPresence(); }
   setName(n) { this.name = n; this._publishPresence(); }
-  setReady(v) { this.ready = !!v; this._publishPresence(); }
+  setReady(v) { this.ready = !!v && this.loaded; this._publishPresence(); }
   claimRole(role) {
     if (this.claims.includes(role)) this.claims = this.claims.filter(r => r !== role);
     else this.claims = [...this.claims, role];
@@ -161,7 +197,8 @@ export class NetSession extends Emitter {
     this._pub(this.t('s'), { lobby: this.lobby, game: this.state, now: Date.now() }, true);
   }
 
-  _onMessage(topic, payload) {
+  _onMessage(topic, payload, packet = {}) {
+    if (this.stopped) return;
     const txt = payload ? payload.toString() : '';
     const base = this.t('');
     const sub = topic.slice(base.length);
@@ -170,7 +207,8 @@ export class NetSession extends Emitter {
       if (!txt) { delete this.presence[pid]; this.lastSeen[pid] = this.lastSeen[pid] || Date.now(); this.emit('presence', this.presence); this._hostDuties(); return; }
       let p; try { p = JSON.parse(txt); } catch (e) { return; }
       if (typeof p !== 'object' || !p) return;
-      this.presence[pid] = { n: String(p.n || '').slice(0, 24), rd: p.rd ? 1 : 0, r: Array.isArray(p.r) ? p.r.filter(r => ROLE_ORDER.includes(r)) : [], on: 1, t: p.t, at: Date.now() };
+      if (packet.retain && (!Number.isFinite(p.t) || Date.now() - p.t > 45000)) return;
+      this.presence[pid] = { n: String(p.n || '').slice(0, 24), rd: p.rd && p.ld ? 1 : 0, ld: p.ld ? 1 : 0, r: Array.isArray(p.r) ? p.r.filter(r => ROLE_ORDER.includes(r)) : [], iq: validIq(p.iq), on: 1, t: p.t, at: Date.now() };
       this.lastSeen[pid] = Date.now();
       this.emit('presence', this.presence);
       this._hostDuties();
@@ -178,7 +216,8 @@ export class NetSession extends Emitter {
       if (!txt) return;
       let m; try { m = JSON.parse(txt); } catch (e) { return; }
       if (!m || !m.lobby) return;
-      if (typeof m.now === 'number') {
+      // Un mensaje retenido puede ser antiguo: su fecha no mide el desfase del reloj.
+      if (!packet.retain && typeof m.now === 'number') {
         this.offsets.push(m.now - Date.now());
         if (this.offsets.length > 7) this.offsets.shift();
         const sorted = [...this.offsets].sort((a, b) => a - b);
@@ -221,10 +260,11 @@ export class NetSession extends Emitter {
   // ---------------- anfitrión: inicio, director y desconexiones
   // introMs: duración del prólogo narrado; el reloj de la partida arranca cuando termina
   startGame(introMs = 0) {
-    if (!this.isHost) return;
+    if (!this.isHost || !this.connected) return;
     const present = Object.entries(this.presence).filter(([pid, p]) => p.on);
     const pids = present.map(([pid]) => pid).sort((a, b) => (a === this.lobby.host ? -1 : b === this.lobby.host ? 1 : a.localeCompare(b)));
     const n = Math.min(4, pids.length);
+    if (pids.length < 2 || pids.length > 4 || !pids.every(pid => this.presence[pid].rd && this.presence[pid].ld)) return;
     const assign = {};
     pids.forEach(pid => assign[pid] = []);
     const taken = new Set();
@@ -246,12 +286,18 @@ export class NetSession extends Emitter {
       }
       assign[best.pid].push(role);
     }
+    // Nadie entra al faro sin planta, aunque una persona haya solicitado todos los roles.
+    for (const pid of pids.filter(pid => !assign[pid].length)) {
+      const donor = pids.filter(q => assign[q].length > 1).sort((a, b) => assign[b].length - assign[a].length)[0];
+      if (donor) assign[pid].push(assign[donor].pop());
+    }
     const players = {};
     pids.forEach((pid, i) => {
-      players[pid] = { n: this.presence[pid].n || `Jugador ${i + 1}`, r: assign[pid], r0: assign[pid].slice(), i, host: pid === this.lobby.host ? 1 : 0 };
+      players[pid] = { n: this.presence[pid].n || `Jugador ${i + 1}`, iq: this.presence[pid].iq, r: assign[pid], r0: assign[pid].slice(), i, host: pid === this.lobby.host ? 1 : 0 };
     });
-    this.state = S.newGame({ players, host: this.lobby.host, now: Date.now() + Math.max(0, introMs) });
-    this.lobby = { ...this.lobby, phase: 'game', started: Date.now() };
+    const introAt = Date.now() + 3500;
+    this.state = S.newGame({ players, host: this.lobby.host, now: introAt + Math.max(0, introMs) });
+    this.lobby = { ...this.lobby, phase: 'game', started: Date.now(), introAt };
     this._publishLobby();
     this.emit('state', this.state);
     this.emit('started', this.state);
@@ -266,13 +312,18 @@ export class NetSession extends Emitter {
     const after = JSON.stringify([this.state.f, this.state.log.length, this.state.phase, this.state.pend.length]);
     if (before !== after) { this._publishLobby(); this.emit('state', this.state); }
     else if (Date.now() - (this._lastPub || 0) > 5000) { this._publishLobby(); }
-    this._lastPub = this._lastPub || Date.now();
+    this._lastPub = Date.now();
   }
 
   _hostDuties() {
     const lobby = this.lobby;
     if (!lobby) return;
     const now = Date.now();
+    let expired = false;
+    for (const [pid, p] of Object.entries(this.presence)) {
+      if (pid !== this.me && now - p.at > 45000) { delete this.presence[pid]; expired = true; }
+    }
+    if (expired) this.emit('presence', this.presence);
     // elección de nuevo anfitrión si el actual desaparece
     const hostAlive = this.presence[lobby.host] || lobby.host === this.me;
     if (!hostAlive) {
@@ -331,7 +382,12 @@ export class NetSession extends Emitter {
   myRoles() { return (this.state && this.state.players[this.me] && this.state.players[this.me].r) || []; }
 
   leave() {
+    this.stopped = true;
+    document.removeEventListener('visibilitychange', this._wake);
+    window.removeEventListener('online', this._wake);
     clearInterval(this._hb); clearInterval(this._tick);
-    if (this.client) { this._pub(this.t('p/' + this.me), '', true); setTimeout(() => { try { this.client.end(); } catch (e) {} }, 300); }
+    if (this.client) { const c = this.client; this._pub(this.t('p/' + this.me), '', true); c.end(); this.client = null; }
   }
 }
+
+function validIq(iq) { return Number.isFinite(iq) && iq >= 40 && iq <= 200 ? Math.round(iq) : null; }

@@ -581,7 +581,7 @@ PANELS.doc = (ctx, id) => {
   return { title: DOCS[id] ? DOCS[id].title : 'Documento', el };
 };
 
-PANELS.inspect = (ctx, arg) => ({ title: arg.title, el: h('div', { class: 'split' }, ...arg.lines.map(t => h('p', { style: { margin: 0, lineHeight: 1.55 }, text: t })), ...(arg.actions || []).map(a => h('button', { class: 'btn ' + (a.primary ? 'primary' : ''), text: a.label, onclick: a.fn }))) });
+PANELS.inspect = (ctx, arg) => ({ title: arg.title, el: h('div', { class: 'split' }, ...arg.lines.map(t => typeof t === 'string' ? h('p', { style: { margin: 0, lineHeight: 1.55 }, text: t }) : t), ...(arg.actions || []).map(a => h('button', { class: 'btn ' + (a.primary ? 'primary' : ''), text: a.label, onclick: a.fn }))) });
 
 PANELS.cork = (ctx) => ({
   title: 'Tablón de corcho',

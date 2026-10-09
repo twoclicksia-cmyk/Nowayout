@@ -4,6 +4,7 @@ export class AudioEngine {
     this.base = base;
     this.ctx = null;
     this.muted = false;
+    this.volume = 1;
     this.buffers = {};
     this.floor = 'f2';
     this.manifest = null;
@@ -15,7 +16,7 @@ export class AudioEngine {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     const ctx = this.ctx = new AC();
-    this.master = ctx.createGain(); this.master.gain.value = this.muted ? 0 : 0.9;
+    this.master = ctx.createGain(); this.master.gain.value = this.muted ? 0 : 0.9 * this.volume;
     const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3;
     this.master.connect(comp); comp.connect(ctx.destination);
     // todo lo que no es narrador pasa por aquí para poder bajarlo mientras habla
@@ -39,7 +40,12 @@ export class AudioEngine {
 
   setMuted(m) {
     this.muted = m;
-    if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.9, this.ctx.currentTime, 0.05);
+    if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.9 * this.volume, this.ctx.currentTime, 0.05);
+  }
+
+  setVolume(value) {
+    this.volume = Math.max(0, Math.min(1, Number.isFinite(value) ? value : 1));
+    this.setMuted(this.muted);
   }
 
   _noise(sec, kind) {
@@ -208,7 +214,7 @@ export class AudioEngine {
     this.buffers[id] = b;
     return b;
   }
-  preload(ids) { if (this.ctx) ids.forEach(id => this._buf(id).catch(() => {})); }
+  preload(ids) { return this.ctx ? Promise.allSettled(ids.map(id => this._buf(id))) : Promise.resolve([]); }
 
   info(id) { return (this.manifest && this.manifest[id]) || { dur: 3, sub: '' }; }
 
