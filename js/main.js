@@ -13,17 +13,37 @@ import { corkCanvas, workorderCanvas, drawingCanvas, calendarCanvas } from './ui
 import { chartCanvas } from './ui/chart.js';
 import { fmtLat, fmtLon } from './game/nav.js';
 import { guardReport, saveRecord } from './game/report.js';
+import { reasoningReport } from './game/reasoning.js';
+import { iqProfile, sharedIq, externalIq, reasoningSection } from './ui/reasoning.js';
+import { roomCountdown, enterRoom } from './ui/arrival.js';
 
 const BASE = '.';
 const params = new URLSearchParams(location.search);
 const TEST = params.has('test');
 const settings = {
   sound: store('nwo.sound') ?? true,
+  volume: store('nwo.volume') ?? 100,
   reduce: store('nwo.reduce') ?? matchMedia('(prefers-reduced-motion: reduce)').matches,
   quality: store('nwo.quality') || 'auto',
   name: store('nwo.name') || '',
 };
 const audio = new AudioEngine(BASE);
+audio.setVolume(settings.volume / 100);
+function roomMemory(value) {
+  try {
+    if (value === undefined) return JSON.parse(sessionStorage.getItem('nwo.room') || 'null');
+    if (value === null) sessionStorage.removeItem('nwo.room');
+    else sessionStorage.setItem('nwo.room', JSON.stringify(value));
+  } catch (e) { return null; }
+}
+function volumeControl() {
+  const label = h('span', { class: 'fine', text: `Tu volumen: ${settings.volume}%` });
+  const slider = h('input', { type: 'range', min: 0, max: 100, step: 1, value: settings.volume, 'aria-label': 'Tu volumen', style: { width: '100%', accentColor: 'var(--amber)' }, oninput: e => {
+    settings.volume = Number(e.target.value); store('nwo.volume', settings.volume);
+    audio.setVolume(settings.volume / 100); label.textContent = `Tu volumen: ${settings.volume}%`;
+  } });
+  return h('label', { class: 'split' }, label, slider);
+}
 
 // ------------------------------------------------------------------ como una app: pantalla completa y pantalla encendida
 const IS_ANDROID = /Android/i.test(navigator.userAgent);
@@ -78,6 +98,8 @@ function initGate() {
     row.appendChild(b);
   });
   if (/iPhone|iPad|iPod/.test(navigator.userAgent) && !STANDALONE && row) row.after(h('p', { class: 'fine', text: 'En iPhone, para jugar como app a pantalla completa: Compartir → «Añadir a pantalla de inicio».' }));
+  row.after(volumeControl());
+  row.parentElement.append(iqProfile());
   $('#playSolo').onclick = () => startSolo();
   $('#playFriends').onclick = () => openLobby();
   if (params.get('sala')) openLobby(params.get('sala').toUpperCase().slice(0, 6), params.has('b') ? Number(params.get('b')) : null);
@@ -158,31 +180,41 @@ function openLobby(code = null, broker = null) {
   if (gfx) { gfx.stop(); gfx = null; }
   show('lobby');
   const body = $('#lobbyBody');
-  $('#lobbyBack').onclick = () => { if (session && session.leave) session.leave(); session = null; store('nwo.room', null); location.href = location.pathname; };
+  $('#lobbyBack').onclick = () => { if (session && session.leave) session.leave(); session = null; roomMemory(null); location.href = location.pathname; };
   const nameIn = h('input', { class: 'input', id: 'nm', maxlength: '20', placeholder: 'Tu nombre', value: settings.name, autocomplete: 'nickname' });
   const codeIn = h('input', { class: 'input code', id: 'cd', maxlength: '6', placeholder: 'CÓDIGO', value: code || '', autocapitalize: 'characters' });
   const err = h('p', { class: 'fine', style: { color: '#ffb4ab' } });
   const saveName = () => { settings.name = nameIn.value.trim().slice(0, 20); store('nwo.name', settings.name); };
+  let connecting = false;
   const connect = async (create) => {
+    if (connecting) return;
     saveName();
     if (!settings.name) { err.textContent = 'Escribe tu nombre para que el grupo sepa quién eres.'; nameIn.focus(); return; }
     if (!create && codeIn.value.trim().length < 6) { err.textContent = 'El código tiene 6 caracteres.'; return; }
+    connecting = true;
+    const buttons = [...body.querySelectorAll('button')]; buttons.forEach(b => b.disabled = true);
+    try {
     err.textContent = 'Conectando…';
-    await audio.init(); audio.setMuted(!settings.sound);
-    audio.preload(C.INTRO.coop.map(l => l[0]));
+    // El audio suspendido (recarga o vuelta desde WhatsApp) no debe bloquear la red.
+    audio.setMuted(!settings.sound);
+    audio.init().then(() => audio.preload(C.INTRO.coop.map(l => l[0]))).catch(console.warn);
     const brokerUrl = params.get('broker') || null;
     if (create) {
-      session = new NetSession({ base: BASE, name: settings.name, brokerUrl });
-      try { await session.connect(true); } catch (e) { err.textContent = 'No se pudo conectar. Revisa tu conexión (wifi o datos) y vuelve a intentarlo.'; session = null; return; }
+      session = new NetSession({ base: BASE, name: settings.name, brokerUrl, iq: sharedIq() });
+      try { await session.connect(true); } catch (e) { session.leave(); err.textContent = 'No se pudo conectar. Revisa tu conexión (wifi o datos) y vuelve a intentarlo.'; session = null; return; }
       return roomView();
     }
     // unirse: la sala tiene que existir (su anfitrión publica el estado). Con enlace se sabe el bróker; con código se buscan todos.
     const roomCode = codeIn.value.trim().toUpperCase();
     const tryJoin = async (bi, waitMs) => {
-      const sx = new NetSession({ base: BASE, name: settings.name, code: roomCode, broker: bi, brokerUrl });
-      try { await sx.connect(false); } catch (e) { return null; }
+      const sx = new NetSession({ base: BASE, name: settings.name, code: roomCode, broker: bi, brokerUrl, iq: sharedIq() });
+      try { await sx.connect(false); } catch (e) { sx.leave(); return null; }
       if (sx.lobby) return sx;
-      const found = await new Promise((res) => { const off = sx.on('lobby', () => { off(); res(true); }); setTimeout(() => res(!!sx.lobby), waitMs); });
+      const found = await new Promise((res) => {
+        const finish = value => { off(); clearTimeout(timer); res(value); };
+        const off = sx.on('lobby', () => finish(true));
+        const timer = setTimeout(() => finish(!!sx.lobby), waitMs);
+      });
       if (found) return sx;
       sx.leave(); return null;
     };
@@ -195,6 +227,7 @@ function openLobby(code = null, broker = null) {
     }
     if (!session) { err.textContent = `No encuentro la sala ${roomCode}. Comprueba el código o pide a tu amigo un enlace nuevo. Revisa también tu conexión (wifi o datos).`; return; }
     roomView();
+    } finally { connecting = false; buttons.forEach(b => b.disabled = false); }
   };
   const host = (params.get('de') || '').slice(0, 20);
   body.innerHTML = '';
@@ -210,9 +243,9 @@ function openLobby(code = null, broker = null) {
         h('button', { class: 'btn primary', text: 'Entrar en la sala', onclick: () => connect(false) }),
         err),
       h('details', { class: 'card' }, h('summary', { class: 'eyebrow', text: '¿Otro código?' }), h('div', { class: 'split', style: { marginTop: '10px' } }, codeIn)));
-    ensureWorld();
+    ensureWorld().catch(console.warn);
     // si esta sala ya era tuya en este dispositivo (recarga, volviste de WhatsApp…), vuelves a entrar solo
-    const mine = store('nwo.room');
+    const mine = roomMemory();
     if (mine && mine.code === code && Date.now() - (mine.at || 0) < 3 * 3600_000 && settings.name) { err.textContent = 'Volviendo a tu sala…'; connect(false); }
     return;
   }
@@ -228,13 +261,13 @@ function openLobby(code = null, broker = null) {
       h('button', { class: 'btn', text: 'Unirme', onclick: () => connect(false) }),
       err),
     h('p', { class: 'fine', text: 'Consejo: jugad en llamada de voz o en la misma habitación. También hay chat dentro de la partida.' }));
-  ensureWorld();
+  ensureWorld().catch(console.warn);
 }
 
 function roomView() {
   const body = $('#lobbyBody');
   // recordar la sala y dejarla en la barra de direcciones: si el móvil recarga la página, se vuelve a entrar
-  store('nwo.room', { code: session.code, b: session.brokerIdx, at: Date.now() });
+  roomMemory({ code: session.code, b: session.brokerIdx, at: Date.now() });
   try { const q = new URLSearchParams(location.search); q.set('sala', session.code); q.set('b', String(session.brokerIdx)); q.delete('de'); history.replaceState(null, '', `${location.pathname}?${q}`); } catch (e) {}
   const hostName = ((session.lobby && session.presence[session.lobby.host] && session.presence[session.lobby.host].n) || (session.isHost ? settings.name : '')).slice(0, 20);
   const link = `${location.origin}${location.pathname}?sala=${session.code}&b=${session.brokerIdx}${hostName ? '&de=' + encodeURIComponent(hostName) : ''}`;
@@ -243,23 +276,37 @@ function roomView() {
   const status = h('div', { class: 'net-status ok', text: 'Conectado' });
   const players = h('ul', { class: 'players' });
   const roles = h('div', { class: 'roles' });
-  const readyBtn = h('button', { class: 'btn', onclick: () => { session.setReady(!session.ready); render(); } });
+  let preparing = false, prepareError = '';
+  const readyBtn = h('button', { class: 'btn', onclick: async () => {
+    if (preparing) return;
+    if (session.ready) { session.setReady(false); render(); return; }
+    preparing = true; prepareError = ''; render();
+    // Este toque activa el sonido; las voces del prólogo se preparan antes del inicio común.
+    try {
+      if (settings.sound) {
+        await Promise.race([audio.init().then(() => audio.preload(C.INTRO.coop.map(l => l[0]))), wait(15000).then(() => { throw new Error('audio timeout'); })]);
+      }
+      session.setReady(true);
+    } catch (e) { prepareError = 'El sonido tarda en cargar. Vuelve a marcar listo o desactiva el sonido para jugar con subtítulos.'; }
+    finally { preparing = false; render(); }
+  } });
   const startBtn = h('button', { class: 'btn primary', text: 'Empezar partida', onclick: () => session.startGame(introMs(C.INTRO.coop)) });
   const startNote = h('p', { class: 'fine' });
   const linkIn = h('input', { class: 'input mono', readonly: true, value: link, 'aria-label': 'Enlace de la sala', onclick: (e) => e.target.select() });
   const copyBtn = h('button', { class: 'btn small', text: 'Copiar enlace', onclick: async () => { try { await navigator.clipboard.writeText(link); copyBtn.textContent = 'Copiado'; } catch (e) { linkIn.select(); copyBtn.textContent = 'Selecciónalo y cópialo'; } } });
   let loaded = false;
-  ensureWorld().then(() => { loaded = true; render(); }).catch(() => {});
+  let loadError = false;
+  ensureWorld().then(() => { loaded = true; session.setLoaded(true); render(); }).catch(() => { loadError = true; render(); });
   function render() {
     const pres = session.presence;
     const lobby = session.lobby || {};
     players.innerHTML = '';
-    const ids = Object.keys(pres).sort((a, b) => (a === lobby.host ? -1 : b === lobby.host ? 1 : (pres[a].t || 0) - (pres[b].t || 0)));
+    const ids = Object.keys(pres).sort((a, b) => (a === lobby.host ? -1 : b === lobby.host ? 1 : a.localeCompare(b)));
     for (const pid of ids) {
       const p = pres[pid];
       players.append(h('li', { class: 'player on' }, h('span', { class: 'st' }),
         h('div', { style: { minWidth: 0 } }, h('div', { class: 'nm', text: (p.n || 'Sin nombre') + (pid === session.me ? ' (tú)' : '') + (pid === lobby.host ? ' · anfitrión' : '') }), h('div', { class: 'rl', text: (p.r || []).map(r => C.ROLES[r].name).join(', ') || 'Sin rol elegido' })),
-        h('span', { class: 'ready' + (p.rd ? ' yes' : ''), text: p.rd ? 'LISTO' : 'esperando' })));
+        h('span', { class: 'ready' + (p.rd ? ' yes' : ''), text: p.rd ? 'LISTO' : p.ld ? 'esperando' : 'cargando…' })));
     }
     roles.innerHTML = '';
     for (const r of C.ROLE_ORDER) {
@@ -267,13 +314,13 @@ function roomView() {
       roles.append(h('button', { class: 'role', 'aria-pressed': session.claims.includes(r), onclick: () => { session.claimRole(r); render(); } },
         h('b', { text: C.ROLES[r].name }), h('span', { text: C.ROLES[r].short }), h('span', { class: 'who', text: who.length ? who.join(', ') : 'libre' })));
     }
-    readyBtn.textContent = !loaded ? 'Cargando el faro…' : session.ready ? 'Estoy listo (pulsa para cancelar)' : 'Marcar como listo';
-    readyBtn.disabled = !loaded;
+    readyBtn.textContent = loadError ? 'No se pudo cargar: recarga la página' : !loaded ? 'Cargando el faro…' : preparing ? 'Preparando sonido…' : session.ready ? 'Estoy listo (pulsa para cancelar)' : 'Marcar como listo';
+    readyBtn.disabled = !loaded || !session.connected || preparing;
     readyBtn.className = 'btn' + (session.ready ? ' primary' : '');
-    const n = ids.length, allReady = ids.length > 0 && ids.every(pid => pres[pid].rd);
+    const n = ids.length, allReady = ids.length > 0 && ids.every(pid => pres[pid].rd && pres[pid].ld);
     startBtn.hidden = !session.isHost;
-    startBtn.disabled = !(allReady && n >= 1 && n <= 4);
-    startNote.textContent = session.isHost ? (n > 4 ? 'Máximo 4 jugadores.' : allReady ? 'Todo listo. Los roles libres se repartirán solos.' : 'Esperando a que todos marquen «listo».') : 'El anfitrión empezará cuando todos estéis listos.';
+    startBtn.disabled = !(session.connected && loaded && allReady && n >= 2 && n <= 4);
+    startNote.textContent = prepareError || (session.isHost ? (n > 4 ? 'Máximo 4 jugadores.' : n < 2 ? 'Comparte el enlace de esta sala y espera a tus amigos.' : allReady ? 'Todo listo. Los roles libres se repartirán solos.' : 'Esperando a que todos marquen «listo».') : 'El anfitrión empezará cuando todos estéis listos.');
   }
   body.innerHTML = '';
   body.append(
@@ -282,17 +329,19 @@ function roomView() {
       h('div', { class: 'code-big', text: session.code }),
       h('a', { class: 'btn primary', href: wa, target: '_blank', rel: 'noopener', text: 'Invitar por WhatsApp' }),
       h('div', { class: 'row' }, linkIn, copyBtn),
-      h('p', { class: 'fine', text: 'Se abre WhatsApp con un mensaje y el enlace de la sala; tú eliges a quién se lo envías.' })),
+      h('p', { class: 'fine', text: 'Comparte este enlace de sala por WhatsApp. El QR de la portada abre el juego, pero no une a tus amigos a esta partida.' }), volumeControl()),
     h('div', { class: 'card split' }, h('div', { class: 'eyebrow', text: 'Jugadores conectados' }), players),
     h('div', { class: 'card split' }, h('div', { class: 'eyebrow', text: 'Roles (elige uno o varios)' }), h('p', { class: 'fine', text: 'Cada rol solo puede entrar en su planta del faro y ve cosas que los demás no ven. Con menos de 4 jugadores, alguien llevará dos roles.' }), roles),
-    h('div', { class: 'split' }, readyBtn, startBtn, startNote));
+    h('div', { class: 'split' }, readyBtn, startBtn, startNote), iqProfile(iq => session.setIq(iq)));
   session.on('presence', render);
   session.on('lobby', render);
-  session.on('net', (st) => { status.className = 'net-status ' + (st === 'ok' ? 'ok' : 'bad'); status.textContent = st === 'ok' ? 'Conectado' : st === 'reconnecting' ? 'Reconectando…' : 'Sin conexión'; });
+  session.on('net', (st) => { status.className = 'net-status ' + (st === 'ok' ? 'ok' : 'bad'); status.textContent = st === 'ok' ? 'Conectado' : st === 'reconnecting' ? 'Reconectando…' : 'Sin conexión'; render(); });
   session.on('started', async () => {
     if (!session.state || !session.state.players[session.me]) { body.prepend(h('div', { class: 'card', style: { borderColor: '#5a2620' }, text: 'Esta partida ya está en marcha sin ti. Pide al grupo que cree otra sala.' })); return; }
     try { await loadingScreen(); } catch (e) { return failLoad(e); }
     if (game) return;
+    show('intro');
+    await roomCountdown(session, audio, settings.reduce);
     // el reloj de todos arranca en t0, justo al acabar la presentación narrada
     const toStart = session.state.t0 - session.now();
     if (toStart < 2500) startGame(); else playIntro(C.INTRO.coop, () => startGame(), toStart);
@@ -731,7 +780,7 @@ class Game {
       ...((document.fullscreenEnabled || document.webkitFullscreenEnabled) && !STANDALONE ? [{ label: document.fullscreenElement ? 'Salir de pantalla completa' : 'Pantalla completa', fn: () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else goFullscreen(); this.panels.close(); } }] : []),
       { label: 'Abandonar la partida', fn: () => this.inspect('¿Abandonar?', ['Saldrás del faro. La puerta de NOWAYOUT seguirá cerrada.'], [{ label: 'Sí, salir', primary: true, fn: () => { if (this.session.leave) this.session.leave(); store('nwo.room', null); location.href = location.pathname; } }]) },
     ];
-    this.inspect('Menú', [`Sala 0 · La Última Frecuencia${this.session.mode === 'coop' ? ' · sala ' + this.session.code : ''}`], actions);
+    this.inspect('Menú', [`Sala 0 · La Última Frecuencia${this.session.mode === 'coop' ? ' · sala ' + this.session.code : ''}`, volumeControl()], actions);
   }
 
   // ---------------------------------------------------- bucle
@@ -970,7 +1019,7 @@ class Game {
       h('div', { class: 'end-title', text: E.title }),
       h('p', { class: 'end-msg', text: E.message }),
       h('div', { class: ok ? 'unlock-stamp' : 'deny-stamp', text: ok ? 'NOWAYOUT DESBLOQUEADO' : 'NOWAYOUT SIGUE CERRADO' }),
-      scoreEl,
+      scoreEl, reasoningSection(reasoningReport(s, externalIq())),
       ok ? h('button', { class: 'btn primary', text: 'Entrar en NOWAYOUT', onclick: () => { stopMsg(); openCatalog(end.ending); } }) : null,
       h('button', { class: 'btn' + (ok ? '' : ' primary'), text: ok ? 'Volver a jugar (hay otros finales)' : 'Reintentar ahora', onclick: () => { stopMsg(); this.replay(); } }),
       h('button', { class: 'btn ghost', text: 'Volver a la portada', onclick: () => { stopMsg(); if (this.session.leave) this.session.leave(); location.href = location.pathname; } }),
@@ -1002,6 +1051,7 @@ function startGame() {
   $('#hotspots').hidden = false; $('#navL').hidden = false; $('#navR').hidden = false;
   game = new Game(session);
   game.start();
+  if (session.mode === 'coop') enterRoom(settings.reduce);
 }
 
 function openCatalog(ending) {
