@@ -270,7 +270,7 @@ function roomView() {
   roomMemory({ code: session.code, b: session.brokerIdx, at: Date.now() });
   try { const q = new URLSearchParams(location.search); q.set('sala', session.code); q.set('b', String(session.brokerIdx)); q.delete('de'); history.replaceState(null, '', `${location.pathname}?${q}`); } catch (e) {}
   const hostName = ((session.lobby && session.presence[session.lobby.host] && session.presence[session.lobby.host].n) || (session.isHost ? settings.name : '')).slice(0, 20);
-  const link = `${location.origin}${location.pathname}?sala=${session.code}&b=${session.brokerIdx}${hostName ? '&de=' + encodeURIComponent(hostName) : ''}`;
+  const link = `${location.origin}${location.pathname}?sala=${session.code}&b=${session.brokerIdx}${hostName ? '&de=' + encodeURIComponent(hostName) : ''}&v=handprint2`;
   const invite = `🔒 NOWAYOUT · No hay salida… para quien no piensa.\n\nSala 0: «La Última Frecuencia». Un faro en plena tormenta, una radio que habla con 1996 y 15 minutos antes de la pleamar. Una sola decisión, sin vuelta atrás.\n\nTe reto a encontrar la salida conmigo. ¿Tu cabeza aguanta la presión?\n\n👉 ${link}\nCódigo de sala: ${session.code}`;
   const wa = `https://wa.me/?text=${encodeURIComponent(invite)}`;
   const status = h('div', { class: 'net-status ok', text: 'Conectado' });
