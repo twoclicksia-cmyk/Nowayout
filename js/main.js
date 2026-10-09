@@ -158,7 +158,7 @@ function openLobby(code = null, broker = null) {
   if (gfx) { gfx.stop(); gfx = null; }
   show('lobby');
   const body = $('#lobbyBody');
-  $('#lobbyBack').onclick = () => { if (session && session.leave) session.leave(); session = null; location.href = location.pathname; };
+  $('#lobbyBack').onclick = () => { if (session && session.leave) session.leave(); session = null; store('nwo.room', null); location.href = location.pathname; };
   const nameIn = h('input', { class: 'input', id: 'nm', maxlength: '20', placeholder: 'Tu nombre', value: settings.name, autocomplete: 'nickname' });
   const codeIn = h('input', { class: 'input code', id: 'cd', maxlength: '6', placeholder: 'CÓDIGO', value: code || '', autocapitalize: 'characters' });
   const err = h('p', { class: 'fine', style: { color: '#ffb4ab' } });
@@ -211,6 +211,9 @@ function openLobby(code = null, broker = null) {
         err),
       h('details', { class: 'card' }, h('summary', { class: 'eyebrow', text: '¿Otro código?' }), h('div', { class: 'split', style: { marginTop: '10px' } }, codeIn)));
     ensureWorld();
+    // si esta sala ya era tuya en este dispositivo (recarga, volviste de WhatsApp…), vuelves a entrar solo
+    const mine = store('nwo.room');
+    if (mine && mine.code === code && Date.now() - (mine.at || 0) < 3 * 3600_000 && settings.name) { err.textContent = 'Volviendo a tu sala…'; connect(false); }
     return;
   }
   body.append(
@@ -230,6 +233,9 @@ function openLobby(code = null, broker = null) {
 
 function roomView() {
   const body = $('#lobbyBody');
+  // recordar la sala y dejarla en la barra de direcciones: si el móvil recarga la página, se vuelve a entrar
+  store('nwo.room', { code: session.code, b: session.brokerIdx, at: Date.now() });
+  try { const q = new URLSearchParams(location.search); q.set('sala', session.code); q.set('b', String(session.brokerIdx)); q.delete('de'); history.replaceState(null, '', `${location.pathname}?${q}`); } catch (e) {}
   const hostName = ((session.lobby && session.presence[session.lobby.host] && session.presence[session.lobby.host].n) || (session.isHost ? settings.name : '')).slice(0, 20);
   const link = `${location.origin}${location.pathname}?sala=${session.code}&b=${session.brokerIdx}${hostName ? '&de=' + encodeURIComponent(hostName) : ''}`;
   const invite = `🔒 NOWAYOUT · No hay salida… para quien no piensa.\n\nSala 0: «La Última Frecuencia». Un faro en plena tormenta, una radio que habla con 1996 y 15 minutos antes de la pleamar. Una sola decisión, sin vuelta atrás.\n\nTe reto a encontrar la salida conmigo. ¿Tu cabeza aguanta la presión?\n\n👉 ${link}\nCódigo de sala: ${session.code}`;
@@ -723,7 +729,7 @@ class Game {
       { label: settings.reduce ? 'Movimiento: reducido' : 'Movimiento: normal', fn: () => { settings.reduce = !settings.reduce; store('nwo.reduce', settings.reduce); this.world.reduceMotion = settings.reduce; this.menu(); } },
       { label: `Calidad: ${this.world.quality}`, fn: () => { const o = ['alta', 'media', 'baja']; const q = o[(o.indexOf(this.world.quality) + 1) % o.length]; settings.quality = q; store('nwo.quality', q); this.world.setQuality(q); this.menu(); } },
       ...((document.fullscreenEnabled || document.webkitFullscreenEnabled) && !STANDALONE ? [{ label: document.fullscreenElement ? 'Salir de pantalla completa' : 'Pantalla completa', fn: () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else goFullscreen(); this.panels.close(); } }] : []),
-      { label: 'Abandonar la partida', fn: () => this.inspect('¿Abandonar?', ['Saldrás del faro. La puerta de NOWAYOUT seguirá cerrada.'], [{ label: 'Sí, salir', primary: true, fn: () => { if (this.session.leave) this.session.leave(); location.href = location.pathname; } }]) },
+      { label: 'Abandonar la partida', fn: () => this.inspect('¿Abandonar?', ['Saldrás del faro. La puerta de NOWAYOUT seguirá cerrada.'], [{ label: 'Sí, salir', primary: true, fn: () => { if (this.session.leave) this.session.leave(); store('nwo.room', null); location.href = location.pathname; } }]) },
     ];
     this.inspect('Menú', [`Sala 0 · La Última Frecuencia${this.session.mode === 'coop' ? ' · sala ' + this.session.code : ''}`], actions);
   }

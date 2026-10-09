@@ -343,7 +343,7 @@ export class World {
     const sky = new THREE.Mesh(new THREE.SphereGeometry(20000, 32, 16), new THREE.ShaderMaterial({
       side: THREE.BackSide, depthWrite: false, fog: false,
       uniforms: { time: { value: 0 }, flash: { value: 0 }, flashDir: { value: new THREE.Vector3(-1, 0.3, 0).normalize() } },
-      vertexShader: /* glsl */`varying vec3 vDir; void main(){ vDir = normalize(position); vec4 p = projectionMatrix*modelViewMatrix*vec4(position,1.0); gl_Position = p.xyww; }`,
+      vertexShader: /* glsl */`varying vec3 vDir; void main(){ vDir = normalize(position); vec4 p = projectionMatrix*modelViewMatrix*vec4(position,1.0); gl_Position = vec4(p.xy, p.w * 0.99995, p.w); }`,
       fragmentShader: /* glsl */`
         uniform float time, flash; uniform vec3 flashDir; varying vec3 vDir;
         float hash(vec3 p){ p = fract(p*0.3183099+.1); p *= 17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
@@ -417,7 +417,8 @@ export class World {
     const cliff = new THREE.Mesh(new THREE.CylinderGeometry(9, 40, 62, 24, 6, true), new THREE.MeshBasicMaterial({ color: 0x07090b }));
     cliff.position.y = -31;
     ext.add(cliff);
-    const land = new THREE.Mesh(this._coastGeometry(), new THREE.MeshBasicMaterial({ color: 0x06080a, side: THREE.DoubleSide }));
+    // costa: relieve bajo y lejano (solo silueta contra el cielo; no tapa el horizonte cercano)
+    const land = new THREE.Mesh(this._landGeometry(), new THREE.MeshBasicMaterial({ color: 0x07090c, side: THREE.DoubleSide }));
     ext.add(land);
     this.land = land;
     // luces lejanas con su característica
@@ -460,6 +461,36 @@ export class World {
     rain.frustumCulled = false;
     this.rain = rain;
     this.scene.add(rain);
+  }
+
+  _landGeometry() {
+    // malla en rejilla: dentro del polígono de tierra (costa → este) el terreno sube con la distancia a la costa;
+    // fuera queda bajo el mar. El cabo del faro se queda a la altura del acantilado.
+    const C = [[1.1, 6.0], [0.55, 5.0], [0.4, 4.35], [0.62, 3.95], [1.25, 3.45], [1.7, 2.7], [1.45, 1.85], [0.75, 1.15], [0.2, 0.55], [-0.22, 0.12], [-0.12, -0.35], [-0.35, -1.1], [-0.75, -1.9], [-1.1, -2.65], [-1.05, -3.15], [-0.55, -3.55], [0.35, -3.85], [1.15, -4.15], [1.35, -4.45], [1.1, -4.9], [0.6, -5.4], [0.7, -6.4]];
+    const poly = [...C, [9, -6.4], [9, 6.0]];
+    const inside = (x, y) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+    const segD = (x, y) => { let m = 1e9; for (let i = 0; i < C.length - 1; i++) { const [ax, ay] = C[i], [bx, by] = C[i + 1]; const dx = bx - ax, dy = by - ay; const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy))); m = Math.min(m, Math.hypot(x - ax - t * dx, y - ay - t * dy)); } return m; };
+    const NX = 130, NY = 200, X0 = -2.5, X1 = 6, Y0 = -7, Y1 = 7;
+    const pos = [], idx = [];
+    for (let j = 0; j <= NY; j++) for (let i = 0; i <= NX; i++) {
+      const x = X0 + (X1 - X0) * i / NX, y = Y0 + (Y1 - Y0) * j / NY;
+      let hgt = -30;
+      if (inside(x, y)) {
+        const d = segD(x, y);
+        const k = Math.min(1, d / 1.1);
+        hgt = 10 + 125 * k * k * (3 - 2 * k) + 18 * Math.sin(x * 2.1 + y * 1.3) * Math.min(1, d / 0.5);
+        hgt += 100 * Math.exp(-((x + 1.0) ** 2 + (y + 3.05) ** 2) / 0.18);   // Monte Facho (la torreta roja queda en lo alto)
+      }
+      pos.push(x * NM, -62 + hgt, -y * NM);
+    }
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
+      const a = j * (NX + 1) + i, b = a + 1, c = a + NX + 1, d = c + 1;
+      idx.push(a, c, b, b, c, d);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx);
+    return g;
   }
 
   _coastGeometry() {
