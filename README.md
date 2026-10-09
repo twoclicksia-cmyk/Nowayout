@@ -6,8 +6,7 @@ Escape rooms para jugar en directo, solo o con amigos, desde el navegador del m�
 
 ## Jugar
 
-Enlace directo: **https://raw.githack.com/twoclicksia-cmyk/Nowayout/main/index.html**
-(cuando GitHub Pages esté activado: https://twoclicksia-cmyk.github.io/Nowayout/)
+Enlace para jugar: **https://twoclicksia-cmyk.github.io/Nowayout/**
 
 - **Solo:** abre la web y pulsa «Jugar solo».
 - **Con amigos:** pulsa «Jugar con amigos», escribe tu nombre y «Crear sala». Comparte el enlace (botón de WhatsApp o «Copiar enlace»). Los demás lo abren, escriben su nombre y pulsan «Entrar en la sala». Cuando todos marcan «listo», el anfitrión empieza la partida.
